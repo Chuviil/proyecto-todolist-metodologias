@@ -43,7 +43,7 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write # This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
@@ -53,13 +53,12 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-      
-      - name: Login to Azure
+
+      - name: Login to Azure using Managed Identity
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_677F1BF1CC8E4843A8A1A442F396789E }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_771CECEDD58C421A9528BD18106CBEC3 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_97ACB0F578E24DB4B728E6025CB4257C }}
+          auth-type: "managedIdentity"
+          client-id: ${{ secrets.AZURE_USER_ASSIGNED_MANAGED_IDENTITY_CLIENT_ID }}  # Use the UAMI's client ID
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -68,4 +67,5 @@ jobs:
           app-name: 'API-CI-CD'
           slot-name: 'Production'
           package: .
+
           
