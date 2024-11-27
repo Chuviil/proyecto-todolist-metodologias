@@ -58,7 +58,8 @@ jobs:
         uses: azure/login@v2
         with:
           auth-type: "IDENTITY"
-          client-id: ${{ secrets.AZURE_USER_ASSIGNED_MANAGED_IDENTITY_CLIENT_ID }}  # Use the UAMI's client ID
+          client-id: ${{ secrets.AZURE_USER_ASSIGNED_MANAGED_IDENTITY_CLIENT_ID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_97ACB0F578E24DB4B728E6025CB4257C}} # Use the UAMI's client ID
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
