@@ -60,6 +60,7 @@ jobs:
           auth-type: "IDENTITY"
           client-id: ${{ secrets.AZURE_USER_ASSIGNED_MANAGED_IDENTITY_CLIENT_ID }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_97ACB0F578E24DB4B728E6025CB4257C}} # Use the UAMI's client ID
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_771CECEDD58C421A9528BD18106CBEC3 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
