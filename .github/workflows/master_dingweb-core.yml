@@ -38,7 +38,13 @@ jobs:
         run: npm install
 
       - name: Run Tests
-        run: npm test --if-present
+        run: npm test --if-present | tee test.log
+
+      - name: Upload Test Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: test.log
 
   build:
     runs-on: ubuntu-latest
