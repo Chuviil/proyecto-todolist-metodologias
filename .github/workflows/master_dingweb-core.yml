@@ -111,9 +111,16 @@ jobs:
         with:
           node-version: '20.x'
 
+      - name: Configure Git User
+        run: |
+          git config --local user.email "${{secrets.USER_EMAIL}}"
+          git config --local user.name "${{secrets.USER_NAME}}"
+
       - name: Bump version and create Git tag
         run: |
           npm version patch -m "Release version %s"
+
+          # Push the new version with the Git tag
           git push origin master --tags
 
   deploy:
