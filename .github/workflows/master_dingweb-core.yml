@@ -1,14 +1,19 @@
-name: CI/CD Pipeline for Node.js App
+name: CI/CD Pipeline for Nest.js App
 
 on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
-  lint:
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache-node.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
 
@@ -17,25 +22,45 @@ jobs:
         with:
           node-version: '20.x'
 
+      - name: Cache Node.js modules
+        id: cache-node
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install Dependencies
-        run: npm install
+        if: steps.cache-node.outputs.cache-hit != 'true'
+        run: npm ci
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use cached Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-hit }}
 
       - name: Lint Code
         run: npm run lint --if-present
 
   test:
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [setup, lint]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Use cached Node.js modules
+        uses: actions/cache@v3
         with:
-          node-version: '20.x'
-
-      - name: Install Dependencies
-        run: npm install
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-hit }}
 
       - name: Run Tests
         run: npm test --if-present | tee test.log
@@ -52,13 +77,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Use cached Node.js modules
+        uses: actions/cache@v3
         with:
-          node-version: '20.x'
-
-      - name: Install Dependencies
-        run: npm install
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-hit }}
 
       - name: Build Application
         run: npm run build --if-present
@@ -72,14 +95,30 @@ jobs:
           name: node-app
           path: release.zip
 
-  deploy:
+  versioning:
     runs-on: ubuntu-latest
     needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - name: Bump version and create Git tag
+        run: |
+          npm version patch -m "Release version %s"
+          git push origin master --tags
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: versioning
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write # Required for requesting the JWT
+      id-token: write
 
     steps:
       - name: Download Build Artifact
