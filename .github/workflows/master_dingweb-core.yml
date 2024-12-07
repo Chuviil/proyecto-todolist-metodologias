@@ -4,16 +4,13 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
   workflow_dispatch:
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      cache-hit: ${{ steps.cache-node.outputs.cache-hit }}
+      node-cache-key: ${{ steps.cache-node.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
 
@@ -41,11 +38,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use cached Node.js modules
+      - name: Cache Node.js modules
         uses: actions/cache@v3
         with:
           path: node_modules
-          key: ${{ needs.setup.outputs.cache-hit }}
+          key: ${{ needs.setup.outputs.node-cache-key }}
 
       - name: Lint Code
         run: npm run lint --if-present
@@ -56,11 +53,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use cached Node.js modules
+      - name: Cache Node.js modules
         uses: actions/cache@v3
         with:
           path: node_modules
-          key: ${{ needs.setup.outputs.cache-hit }}
+          key: ${{ needs.setup.outputs.node-cache-key }}
 
       - name: Run Tests
         run: npm test --if-present | tee test.log
@@ -77,11 +74,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use cached Node.js modules
+      - name: Cache Node.js modules
         uses: actions/cache@v3
         with:
           path: node_modules
-          key: ${{ needs.setup.outputs.cache-hit }}
+          key: ${{ needs.setup.outputs.node-cache-key }}
 
       - name: Build Application
         run: npm run build --if-present
