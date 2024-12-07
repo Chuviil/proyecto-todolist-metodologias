@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Task } from './schemas/task.schema';
@@ -35,6 +35,11 @@ export class TasksService {
     const deletedTask = await this.taskModel
       .findByIdAndDelete({ _id: id })
       .exec();
+
+    if (!deletedTask) {
+      throw new NotFoundException();
+    }
+
     return deletedTask;
   }
 }
